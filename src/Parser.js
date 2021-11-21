@@ -1,19 +1,67 @@
+const { Tokenizer } = require('./Tokenizer');
+
 class Parser {
+
+    constructor() {
+        this._string = '';
+        this._tokenizer = new Tokenizer();
+    }
 
     parse(string) {
         this._string = string;
+        this._tokenizer.init(string);
+        this._lookahead = this._tokenizer.getNextToken();
         return this.Program();
     }
 
     Program() {
-        return this.NumericLiteral();
+        return this.Literal();
     }
 
     NumericLiteral() {
+        const token = this._eat('NUMBER');
         return {
             type: 'NumericLiteral',
-            value: Number(this._string)
+            value: Number(token.value),
         }
+    }
+
+    Literal() {
+        switch(this._lookahead.type) {
+            case 'NUMBER':
+                return this.NumericLiteral();
+                break;
+            case 'STRING':
+                return this.StringLiteral();
+                break;
+        }
+        throw new SyntaxError(`Literal: unexpected literal`);
+    }
+
+    StringLiteral() {
+        const token = this._eat('STRING');
+        return {
+            type: 'StringLiteral',
+            value: token.value.slice(1, -1), // no quotes included
+        }
+    }
+
+    _eat(tokenType) {
+        const token = this._lookahead;
+
+        if(token == null) {
+            throw new SyntaxError(`Unexpected end of input, expect: "${tokenType}"`,
+            );
+        }
+
+        if(token.type !== tokenType) {
+            throw new SyntaxError(`Unexpected token: "${token.value}", expected: "${tokenType}"`,
+            );
+        }
+
+        this._lookahead = this._tokenizer.getNextToken();
+
+        return token;
     }
 }
 
