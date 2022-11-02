@@ -1,3 +1,22 @@
+const Spec = [
+    // Whitespace:
+    [/^s+/, null],
+
+    // Comments:
+    // skip single-line comments
+    [/^\/\/.*/, null],
+    
+    // skip multi-line comments
+    [/^\/\*[\s\S]*?\*\//, null],
+
+    // Numbers:
+    [/^\d+/, 'NUMBER'],
+
+    // Strings:
+    [/^"[^"]*"/, 'STRING'],
+    [/^'[^']*'/, 'STRING'],
+]
+
 class Tokenizer {
 
     init(string) {
@@ -13,6 +32,17 @@ class Tokenizer {
         return this._cursor < this._string.length;
     }
 
+    _match(regexp, string) {
+        const matched = regexp.exec(string);
+        if(matched == null) {
+            return null;
+        }
+
+        this._cursor += matched[0].length;
+        return matched[0];
+    }
+
+
     getNextToken() {
         if(!this.hasMoreTokens()) {
             return null;
@@ -20,40 +50,63 @@ class Tokenizer {
 
         const string = this._string.slice(this._cursor);
 
-        if(!Number.isNaN(Number(string[0]))) {
-           let number = '';
-           while(!Number.isNaN(Number(string[this._cursor]))) {
-               number += string[this._cursor++];
-           }
-           return {
-               type: 'NUMBER',
-               value: number,
-           };
+        for (const [regexp, tokenType] of Spec) {
+            const tokenValue = this._match(regexp, string);
+            if (tokenValue == null) {
+                continue;
+            }
+
+            if(tokenType == null) {
+                return this.getNextToken();
+            }
+
+            return {
+                type: tokenType,
+                value: tokenValue
+            };
         }
 
-        if(string[0] === '"') {
-            let s = '';
-            do {
-                s += string[this._cursor++];
-            } while (string[this._cursor] !== '"' && !this.isEOF());
-            s += string[this._cursor++];
-            return {
-                type: 'STRING',
-                value: s,
-            }
-        }
 
-        if(string[0] === "'") {
-            let s = '';
-            do {
-                s += string[this._cursor++];
-            } while (string[this._cursor] !== "'" && !this.isEOF());
-            s += string[this._cursor++];
-            return {
-                type: 'STRING',
-                value: s,
-            }
-        }
+        throw new SyntaxError(`Unexpected token: "${string[0]}"`);
+
+        // numbers: \d+
+        // let matched = /^\d+/.exec(string);
+        // if(matched !== null) {
+        //     this._cursor += matched[0].length;
+        //     return {
+        //         type: 'NUMBER',
+        //         value: matched[0],
+        //     };
+        //  }
+
+        // if(!Number.isNaN(Number(string[0]))) {
+        //    let number = '';
+        //    while(!Number.isNaN(Number(string[this._cursor]))) {
+        //        number += string[this._cursor++];
+        //    }
+        //    return {
+        //        type: 'NUMBER',
+        //        value: number,
+        //    };
+        // }
+
+        // matched = /^"[^"]*"/.exec(string);
+        // if(matched !== null) {
+        //     this._cursor += matched[0].length;            
+        //     return {
+        //         type: 'STRING',
+        //         value: matched[0],
+        //     }
+        // }
+
+        // matched = /^'[^']*'/.exec(string);
+        // if(matched !== null) {
+        //     this._cursor += matched[0].length;            
+        //     return {
+        //         type: 'STRING',
+        //         value: matched[0],
+        //     }
+        // }
 
         return null;
     }
