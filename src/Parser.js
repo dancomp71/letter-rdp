@@ -15,7 +15,17 @@ class Parser {
     }
 
     Program() {
-        return this.Literal();
+        return {
+            type: 'Program',
+            body: this.StatementList()
+        };
+    }
+
+    StatementList() {
+        return {
+            type: '',
+            value: null
+        };
     }
 
     NumericLiteral() {
@@ -26,24 +36,20 @@ class Parser {
         }
     }
 
-    Literal() {
-        switch(this._lookahead.type) {
-            case 'NUMBER':
-                return this.NumericLiteral();
-                break;
-            case 'STRING':
-                return this.StringLiteral();
-                break;
-        }
-        throw new SyntaxError(`Literal: unexpected literal`);
-    }
-
     StringLiteral() {
         const token = this._eat('STRING');
         return {
             type: 'StringLiteral',
             value: token.value.slice(1, -1), // no quotes included
         }
+    }
+
+    Literal() {
+        switch(this._lookahead.type) {
+            case 'NUMBER': return this.NumericLiteral();
+            case 'STRING': return this.StringLiteral();
+        }
+        throw new SyntaxError(`Literal: unexpected literal`);
     }
 
     _eat(tokenType) {

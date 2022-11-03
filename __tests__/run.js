@@ -14,10 +14,9 @@ const parser = new Parser();
 function test(program, expected) {
     const ast = parser.parse(program);
     assert.deepEqual(ast, expected);
-
 }
 
 // Run all tests:
-
 tests.forEach(testRun => testRun(test));
+
 console.log('All assertions passed');
