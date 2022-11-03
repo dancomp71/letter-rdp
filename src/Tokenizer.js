@@ -1,6 +1,6 @@
 const Spec = [
     // Whitespace:
-    [/^s+/, null],
+    [/^\s+/, null],
 
     // Comments:
     // skip single-line comments
@@ -15,7 +15,7 @@ const Spec = [
     // Strings:
     [/^"[^"]*"/, 'STRING'],
     [/^'[^']*'/, 'STRING'],
-]
+];
 
 class Tokenizer {
 
@@ -52,11 +52,14 @@ class Tokenizer {
 
         for (const [regexp, tokenType] of Spec) {
             const tokenValue = this._match(regexp, string);
+            
+            // could not match rule, continue
             if (tokenValue == null) {
                 continue;
             }
 
-            if(tokenType == null) {
+            // should skip token, e.g. whitespace
+            if (tokenType == null) {
                 return this.getNextToken();
             }
 
@@ -66,51 +69,8 @@ class Tokenizer {
             };
         }
 
-
         throw new SyntaxError(`Unexpected token: "${string[0]}"`);
-
-        // numbers: \d+
-        // let matched = /^\d+/.exec(string);
-        // if(matched !== null) {
-        //     this._cursor += matched[0].length;
-        //     return {
-        //         type: 'NUMBER',
-        //         value: matched[0],
-        //     };
-        //  }
-
-        // if(!Number.isNaN(Number(string[0]))) {
-        //    let number = '';
-        //    while(!Number.isNaN(Number(string[this._cursor]))) {
-        //        number += string[this._cursor++];
-        //    }
-        //    return {
-        //        type: 'NUMBER',
-        //        value: number,
-        //    };
-        // }
-
-        // matched = /^"[^"]*"/.exec(string);
-        // if(matched !== null) {
-        //     this._cursor += matched[0].length;            
-        //     return {
-        //         type: 'STRING',
-        //         value: matched[0],
-        //     }
-        // }
-
-        // matched = /^'[^']*'/.exec(string);
-        // if(matched !== null) {
-        //     this._cursor += matched[0].length;            
-        //     return {
-        //         type: 'STRING',
-        //         value: matched[0],
-        //     }
-        // }
-
-        return null;
     }
-
 }
 
 module.exports = {
