@@ -1,12 +1,15 @@
 {
   "devDependencies": {
+    "eslint": "^8.56.0",
     "nodemon": "^3.0.3"
   },
   "nodemonConfig": {
-    "ignore": [ "**/docs/**" ],
+    "ignore": [
+      "**/docs/**"
+    ],
     "delay": 2500
   },
   "scripts": {
-    "start": "nodemon --watch './' -e js ./tests/run.js"
+    "start": "nodemon --watch './' -e js ./__tests__/run.js"
   }
 }
