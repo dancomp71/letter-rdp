@@ -7,6 +7,9 @@ class Parser {
         this._tokenizer = new Tokenizer();
     }
 
+    /**
+     * Parses a string into an AST. 
+     */
     parse(string) {
         this._string = string;
         this._tokenizer.init(string);
@@ -14,6 +17,13 @@ class Parser {
         return this.Program();
     }
 
+    /** 
+     * Main entry point
+     * 
+     * Program
+     *   : NumericLiteral
+     *   ;
+     */
     Program() {
         return {
             type: 'Program',
@@ -21,11 +31,63 @@ class Parser {
         };
     }
 
+    /**
+     * StatementList
+     * : Statement
+     * | StatementList Statement -> Statement Statement Statement Statement
+     * ;
+     */
     StatementList() {
+        const statementList = [this.Statement()]
+        while(this._lookahead != null) {
+            statementList.push(this.Statement());
+        }
+        return statementList;
+    }
+
+    /**
+     * Statement
+     * : ExpressionStatement
+     * ;
+     */
+    Statement() {
+        switch(this._lookahead.type) {
+            case '{':
+                return this.BlockStatement();
+            default:
+                return this.ExpressionStatement();
+        }
+    }
+
+    /** 
+     * BlockStatement
+     * : '{' OptStatementList '}'
+     * ;
+     */
+    BlockStatement() {
+
+    }
+
+    /**
+     * ExpressionStatement
+     * : Expression ';'
+     * ;
+     */
+    ExpressionStatement() {
+        const expression = this.Expression();
+        this._eat(';');
         return {
-            type: '',
-            value: null
+            type: 'ExpressionStatement',
+            expression 
         };
+    }
+
+    /**
+     * Expression
+     * 
+     */
+    Expression() {
+        return this.Literal();
     }
 
     NumericLiteral() {

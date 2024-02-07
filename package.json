@@ -1,0 +1,12 @@
+{
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  },
+  "nodemonConfig": {
+    "ignore": [ "**/docs/**" ],
+    "delay": 2500
+  },
+  "scripts": {
+    "start": "nodemon --watch './' -e js ./tests/run.js"
+  }
+}
