@@ -1,5 +1,72 @@
 const { Tokenizer } = require('./Tokenizer');
 
+// -------------------------------
+// Dfault AST node factories
+
+const DefaultFactory = {
+    Program(body) {
+        return {
+            type: 'Program',
+            body
+        };
+    },
+    EmptyStatement() {
+        return {
+            type: 'EmptyStatement'
+        };
+    },
+    BlockStatement(body) {
+        return {
+            tyep: 'BlockStatement',
+            body
+        };
+    },
+    ExpressionStatement(expression) {
+        return {
+            type: 'ExpressionStatement',
+            expression
+        };
+    },
+    NumericLiteral(value) {
+        return {
+            type: 'NumericaLiteral',
+            value
+        };
+    },
+    StringLiteral(value) {
+        return {
+            type: 'StringLiteral',
+            value
+        };
+    }
+};
+
+// -----------------------------
+// S-expression AST node factories
+
+const SExpressionFactory = {
+    Program(body) {
+        return ['begin', body];
+    },
+    EmptyStatement() {},
+    BlockStatement(body) {
+        return ['begin', body];
+    },
+    ExpressionStatement(expression) {
+        return expression;
+    },
+    NumericLiteral(value) {
+        return value;
+    },
+    StringLiteral(value) {
+        return `"value"`;
+    }
+
+};
+
+const AST_MODE = 'default';
+const factory = AST_MODE == 'default' ? DefaultFactory : SExpressionFactory;
+
 class Parser {
 
     constructor() {
@@ -25,10 +92,7 @@ class Parser {
      *   ;
      */
     Program() {
-        return {
-            type: 'Program',
-            body: this.StatementList()
-        };
+        return factory.Program(this.StatementList());
     }
 
     /**
@@ -37,9 +101,9 @@ class Parser {
      * | StatementList Statement -> Statement Statement Statement Statement
      * ;
      */
-    StatementList() {
+    StatementList(stopLookahead = null) {
         const statementList = [this.Statement()]
-        while(this._lookahead != null) {
+        while(this._lookahead != null && this._lookahead.type !== stopLookahead) {
             statementList.push(this.Statement());
         }
         return statementList;
@@ -48,10 +112,14 @@ class Parser {
     /**
      * Statement
      * : ExpressionStatement
+     * | BlockStatement
+     * | EmptyStatement
      * ;
      */
     Statement() {
         switch(this._lookahead.type) {
+            case ';': 
+                return this.EmptyStatement();
             case '{':
                 return this.BlockStatement();
             default:
@@ -60,12 +128,30 @@ class Parser {
     }
 
     /** 
+     * EmptyStatement
+     *  : ';'
+     *  ;
+     */
+    EmptyStatement() {
+        this._eat(';');
+        return {
+            type: 'EmptyStatement'
+        };
+    }
+
+    /** 
      * BlockStatement
      * : '{' OptStatementList '}'
      * ;
      */
     BlockStatement() {
-
+        this._eat('{');
+        const body = this._lookahead.type !== '}' ? this.StatementList('}') : [];
+        this._eat('}');
+        return {
+            type: 'BlockStatement',
+            body
+        };
     }
 
     /**
