@@ -9,31 +9,20 @@ const tests = [
     require('./literals-test.js'),
     require('./statementlist-test.js'),
     require('./block-test.js'),
-    require('./empty-statement-test.js')
+    require('./empty-statement-test.js'),
+    require('./math-test.js')
 ];
 
 const parser = new Parser();
 
 function exec() {
     var  program = `
-    
-    /** 
-     * Documentation comment:
-     */
-    "hello";
-    
-    // Number:
-    42;
+
+    (42 + 23) * 10;
+
     `;
 
     var ast = parser.parse(program);
-    console.log(JSON.stringify(ast, null, 2));
-
-    program = `
-    ;
-    `;
-
-    ast = parser.parse(program);
     console.log(JSON.stringify(ast, null, 2));
 }
 
@@ -46,7 +35,7 @@ function test(program, expected) {
     assert.deepEqual(ast, expected);
 }
 
-// exec();
+ exec();
 
 // Run all tests:
 tests.forEach(testRun => testRun(test));

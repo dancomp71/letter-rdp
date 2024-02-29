@@ -173,8 +173,77 @@ class Parser {
      * 
      */
     Expression() {
-        return this.Literal();
+        return this.AdditiveExpression();
     }
+
+    /** Additive Expression
+     *  : Literal
+     *  | AdditiveExpression ADDITIVE_OPERATOR Literal
+     *  ;
+     */
+    AdditiveExpression() {
+        let left = this.MultiplicativeExpression();
+        while(this._lookahead.type === 'ADDITIVE_OPERATOR') {
+            const operator = this._eat('ADDITIVE_OPERATOR').value;
+            const right = this.MultiplicativeExpression();
+            left = {
+                type: 'BinaryExpression',
+                operator,
+                left,
+                right
+            };
+        }
+        return left;
+    }
+
+    /** Multiplicative Expression
+     *  : Literal
+     *  | MultiplicativeExpression MULTIPLICATIVE_OPERATOR PrimaryExpression => PrimaryExpression MULTIPLICATIVE_OPERATOR
+     *  ;
+     */
+    MultiplicativeExpression() {
+        let left = this.PrimaryExpression();
+        while(this._lookahead.type === 'MULTIPLICATIVE_OPERATOR') {
+            // operator: *, /
+            const operator = this._eat('MULTIPLICATIVE_OPERATOR').value;
+            const right = this.PrimaryExpression();
+            left = {
+                type: 'BinaryExpression',
+                operator,
+                left,
+                right
+            };
+        }
+        return left;
+    }
+
+    /** PrimaryExpression
+     *  : Literal
+     *  | ParenthesizedExpression
+     *  ;
+     */
+    PrimaryExpression() {
+        switch(this._lookahead.type) {
+            case '(': 
+                return this.ParenthesizedExpression();
+            default:
+                return this.Literal();
+        }
+    }
+
+
+    /** ParenthesizedExpression
+     *  : '(' Expression ')'
+     *  ;
+     */
+
+    ParenthesizedExpression() {
+        this._eat('(');
+        const expression = this.Expression();
+        this._eat(')');
+        return expression;
+    }
+
 
     NumericLiteral() {
         const token = this._eat('NUMBER');
