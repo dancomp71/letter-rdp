@@ -15,13 +15,20 @@ const Spec = [
     [/^\}/, '}'],
     [/^\(/, '('],
     [/^\)/, ')'],
+    
+    // Numbers:
+    [/^\d+/, 'NUMBER'],
+
+    // identifiers
+    [/^\w+/, 'IDENTIFIER'],
+
+    // assignment operators: =, /=, +=, -=,
+    [/^=/, 'SIMPLE_ASSIGN'],
+    [/^[\*\/\+\-]=/, 'COMPLEX_ASSIGN'],
 
     // Math operators: +, -, *, /
     [/^[+\-]/, 'ADDITIVE_OPERATOR'],
     [/^[*\/]/, 'MULTIPLICATIVE_OPERATOR'],
-
-    // Numbers:
-    [/^\d+/, 'NUMBER'],
 
     // Strings:
     [/^"[^"]*"/, 'STRING'],

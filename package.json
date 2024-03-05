@@ -11,6 +11,8 @@
     "delay": 2500
   },
   "scripts": {
-    "start": "nodemon --watch './' -e js ./__tests__/run.js"
+    "start": "nodemon --watch src --watch __tests__ --watch spec --exec \"node ./__tests__/run.js && npm test\"",
+    "test" : "jasmine",
+    "testb" : "start ./testing-using-browser/SpecRunner.html"
   }
 }

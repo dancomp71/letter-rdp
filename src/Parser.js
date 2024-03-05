@@ -71,7 +71,6 @@ class Parser {
 
     constructor() {
         this._string = '';
-        this._tokenizer = new Tokenizer();
     }
 
     /**
@@ -79,6 +78,7 @@ class Parser {
      */
     parse(string) {
         this._string = string;
+        this._tokenizer = new Tokenizer();
         this._tokenizer.init(string);
         this._lookahead = this._tokenizer.getNextToken();
         return this.Program();
@@ -170,11 +170,109 @@ class Parser {
 
     /**
      * Expression
-     * 
+     *  : Literal;
+     *  ;
      */
     Expression() {
-        return this.AdditiveExpression();
+        return this.AssignmentExpression();
     }
+
+    /** AssigmentExpression
+     *  : AdditiveExpression
+     *  | LeftHandSideExpression AssignmentOperator AssignmentExpression
+     *  ;
+     */
+    AssignmentExpression() {
+        const left = this.AdditiveExpression();
+        if(!this._isAssignmentOperator(this._lookahead.type)) {
+            return left;
+        }
+
+        return {
+            type: 'AssignmentExpression',
+            operator: this.AssignmentOperator().value,
+            left: this._checkValueAssignmentTarget(left),
+            right: this.AssignmentExpression()
+        };
+    }
+
+    /** LeftHandSideExpression
+     *  : Identifier
+     *  ;
+     */
+    LeftHandSideExpression() {
+        return this.Identifier();
+    }
+
+    /** Identifier
+     *  : IDENTIFIER
+     *  ;
+     */
+    Identifier() {
+        const name = this._eat('IDENTIFIER').value;
+        return {
+            type: 'Identifier',
+            name
+        };
+    }
+
+    /** Extra check whether it's a valid assignment target */
+    _checkValueAssignmentTarget(node) {
+        if(node.type === 'Identifier') {
+            return node;
+        }
+        throw new SyntaxError('Invalid left-hand side in assignment expression');
+    }
+
+    /** whether the token is an assignment operator */
+    _isAssignmentOperator(tokenType) {
+        return tokenType === 'SIMPLE_ASSIGN' || tokenType === 'COMPLEX_ASSIGN';
+    }
+
+    /** AssignmentOperator
+     *  : SIMPLE_ASSIGN
+     *  | COMPLEX_ASSIGN
+     *  ;
+     */
+    AssignmentOperator() {
+        if(this._lookahead.type === 'SIMPLE_ASSIGN') {
+            return this._eat('SIMPLE_ASSIGN');
+        }
+        return this._eat('COMPLEX_ASSIGN');
+    }
+
+    /** Generic binary expression */
+    _BinaryExpression(builderName, operatorToken) {
+        let left = this[builderName]();
+        console.log('_BinaryExpression.this._lookahead', builderName, operatorToken, this._lookahead);
+        while(this._lookahead.type === operatorToken) {
+            const operator = this._eat(operatorToken).value;
+            const right = this[builderName]();
+            left = {
+                type: 'BinaryExpression',
+                operator,
+                left,
+                right
+            };
+        }
+        return left;
+    }
+
+    // _BinaryExpressionCb(expressionCallback, operatorToken) {
+    //     let left = expressionCallback.apply(this);
+    //     while(this._lookahead.type === operatorToken) {
+    //         const operator = this._eat(operatorToken).value;
+    //         const right = expressionCallback.apply(this);
+    //         left = {
+    //             type: 'BinaryExpression',
+    //             operator,
+    //             left,
+    //             right
+    //         };
+    //     }
+    //     return left;
+    // }
+
 
     /** Additive Expression
      *  : Literal
@@ -182,6 +280,17 @@ class Parser {
      *  ;
      */
     AdditiveExpression() {
+        // return this._BinaryExpressionCb(
+        //     this.MultiplicativeExpression, 
+        //     'ADDITIVE_OPERATOR'
+        // );
+        console.log('AdditiveExpression');
+        // return this._BinaryExpression(
+        //     "MultiplicativeExpression", 
+        //     'ADDITIVE_OPERATOR'
+        // );
+
+
         let left = this.MultiplicativeExpression();
         while(this._lookahead.type === 'ADDITIVE_OPERATOR') {
             const operator = this._eat('ADDITIVE_OPERATOR').value;
@@ -202,6 +311,17 @@ class Parser {
      *  ;
      */
     MultiplicativeExpression() {
+        // return this._BinaryExpressionCb(
+        //     this.PrimaryExpression, 
+        //     'MULTIPLICATIVE_OPERATOR'
+        // );
+        console.log('MultiplicativeExpression');
+        // return this._BinaryExpression(
+        //     "PrimaryExpression", 
+        //     'MULTIPLICATIVE_OPERATOR'
+        // );
+
+
         let left = this.PrimaryExpression();
         while(this._lookahead.type === 'MULTIPLICATIVE_OPERATOR') {
             // operator: *, /
@@ -220,15 +340,24 @@ class Parser {
     /** PrimaryExpression
      *  : Literal
      *  | ParenthesizedExpression
+     *  | LeftHandSizeExpression
      *  ;
      */
     PrimaryExpression() {
+        if(this._isLiteral(this._lookahead.type)) {
+            return this.Literal();
+        }
         switch(this._lookahead.type) {
             case '(': 
                 return this.ParenthesizedExpression();
             default:
-                return this.Literal();
+                return this.LeftHandSideExpression();
         }
+    }
+
+    /** Whether the token is a literal */
+    _isLiteral(tokenType) {
+        return tokenType === 'NUMBER' || tokenType === 'STRING';
     }
 
 

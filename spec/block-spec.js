@@ -1,37 +1,41 @@
-module.exports = test => {
-    test(`
-    {
-        42;
-        "hello";
-    }
-
-    `, {
-        type: 'Program',
-        body: [
+describe("Block Tests", function () {
+  it("Test Simple Block", function () {
+    const program = `
+      {
+          42;
+          "hello";
+      }
+  
+      `;
+    const expected = {
+      type: "Program",
+      body: [
+        {
+          type: "BlockStatement",
+          body: [
             {
-                type: 'BlockStatement',
-                body: [
-                    {
-                        type: 'ExpressionStatement',
-                        expression: {
-                            type: 'NumericLiteral',
-                            value: 42
-                        }
-                    },
-                    {
-                        type: 'ExpressionStatement',
-                        expression: {
-                            type: 'StringLiteral',
-                            value: 'hello'
-                        }
-                    }
-                ]
-            }
-        ]
-    });
+              type: "ExpressionStatement",
+              expression: {
+                type: "NumericLiteral",
+                value: 42,
+              },
+            },
+            {
+              type: "ExpressionStatement",
+              expression: {
+                type: "StringLiteral",
+                value: "hello",
+              },
+            },
+          ],
+        },
+      ],
+    };
+    compile(program).expect(expected);
+  });
 
-    // nested block statements
-    test(`
+  it("nested block statements", function () {
+    const program = `
     {
         42;
         {
@@ -39,7 +43,8 @@ module.exports = test => {
         }
     }
 
-    `, {
+    `;
+    const expected = {
         type: 'Program',
         body: [
             {
@@ -66,15 +71,18 @@ module.exports = test => {
                 ]
             }
         ]
-    });
+    };
+    compile(program).expect(expected);
+  });
 
-    // empty block test
-    test(`
+  it("empty block test", function () {
+    const program = `
     {
 
     }
 
-    `, {
+    `;
+    const expected = {
         type: 'Program',
         body: [
             {
@@ -82,5 +90,7 @@ module.exports = test => {
                 body: []
             }
         ]
-    });    
-};
+    };
+    compile(program).expect(expected);
+  });
+});

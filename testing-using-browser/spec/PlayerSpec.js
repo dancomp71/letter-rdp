@@ -1,6 +1,3 @@
-const Player = require('../../lib/jasmine_examples/Player');  // Adjust the path based on your project structure
-const Song = require('../../lib/jasmine_examples/Song');  // Adjust the path based on your project structure
-
 describe('Player', function() {
   let player;
   let song;
